@@ -30,8 +30,6 @@
 //! # Type Info
 //!
 //! ```
-//! #![feature(debug_non_exhaustive)]
-//!
 //! use partialdebug::type_info::PartialDebug;
 //!
 //! #[allow(dead_code)]
