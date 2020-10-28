@@ -32,8 +32,6 @@ assert_eq!(format!("{:?}", dog), "Dog { legs: 4, eyes: 2, .. }");
 ## Type Info
 
 ```rust
-#![feature(debug_non_exhaustive)]
-
 use partialdebug::type_info::PartialDebug;
 
 #[allow(dead_code)]
