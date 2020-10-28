@@ -1,0 +1,16 @@
+[package]
+name = "partialdebug-derive"
+description = "macros for partialdebug"
+version = "0.1.0"
+authors = ["Dimitri Polonski"]
+edition = "2018"
+repository = "https://github.com/dimpolo/partialdebug/"
+license = "MIT OR Apache-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
