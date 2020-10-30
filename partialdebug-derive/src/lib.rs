@@ -50,7 +50,7 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[proc_macro_derive(PlaceholderPartialDebug, attributes(placeholder))]
+#[proc_macro_derive(PlaceholderPartialDebug, attributes(debug_placeholder))]
 pub fn derive_placeholder(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
     let placeholder = match get_placeholder(&input) {
@@ -117,13 +117,13 @@ fn get_placeholder(input: &ItemStruct) -> Result<Option<String>> {
     let placeholders: Vec<_> = input
         .attrs
         .iter()
-        .filter(|attribute| attribute.path.is_ident("placeholder"))
+        .filter(|attribute| attribute.path.is_ident("debug_placeholder"))
         .collect();
 
     if placeholders.len() > 1 {
         return Err(Error::new_spanned(
             placeholders[1],
-            "More than one placeholder attribute",
+            "More than one debug_placeholder attribute",
         ));
     }
 

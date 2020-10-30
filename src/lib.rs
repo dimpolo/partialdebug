@@ -81,7 +81,7 @@
 //! # }
 //! #
 //! #[derive(PartialDebug)]
-//! #[placeholder = "Unknown"]
+//! #[debug_placeholder = "Unknown"]
 //! struct Dog {
 //!     legs: usize,
 //!     eyes: usize,
