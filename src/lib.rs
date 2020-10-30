@@ -1,6 +1,6 @@
 //! Derive Debug for types where not all fields implement Debug
 //!
-//! # Non Exhaustive
+//! ### Non Exhaustive
 //!
 //! ```
 //! #![feature(debug_non_exhaustive)]
@@ -28,7 +28,7 @@
 //! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
 //! ```
 //!
-//! # Placeholder with Type Info
+//! ### Placeholder with Type Info
 //!
 //! ```
 //! use partialdebug::placeholder::PartialDebug;
@@ -55,7 +55,7 @@
 //! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: DNA }");
 //! ```
 //!
-//! # Placeholder with Custom Text
+//! ### Placeholder with Custom Text
 //!
 //! ```
 //! use partialdebug::placeholder::PartialDebug;
@@ -89,7 +89,7 @@
 
 use core::fmt::{Debug, Formatter, Result};
 
-/// Specialized trait used to distinguish between types that implement Debug and one's that don't^.
+/// Specialized trait used to distinguish between types that implement Debug and one's that don't.
 /// ```
 /// # use partialdebug::AsDebug;
 /// # struct DNA;

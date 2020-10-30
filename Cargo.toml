@@ -1,11 +1,11 @@
 [package]
 name = "partialdebug"
 description = "Derive Debug partially"
-version = "0.0.2"
+version = "0.1.0"
 authors = ["Dimitri Polonski"]
 edition = "2018"
 repository = "https://github.com/dimpolo/partialdebug/"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-partialdebug-derive = {path = "partialdebug-derive"} # TODO change back
+partialdebug-derive = "0.1.0"

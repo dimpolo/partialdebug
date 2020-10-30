@@ -1,6 +1,8 @@
 # partialdebug
 
-## Non Exhaustive
+Derive Debug for types where not all fields implement Debug
+
+#### Non Exhaustive
 
 ```rust
 #![feature(debug_non_exhaustive)]
@@ -16,7 +18,7 @@ struct Dog {
 assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
 ```
 
-## Placeholder with Type Info
+#### Placeholder with Type Info
 
 ```rust
 use partialdebug::placeholder::PartialDebug;
@@ -31,7 +33,7 @@ struct Dog {
 assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: DNA }");
 ```
 
-## Placeholder with Custom Text
+#### Placeholder with Custom Text
 
 ```rust
 use partialdebug::placeholder::PartialDebug;
