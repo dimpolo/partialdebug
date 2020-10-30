@@ -4,6 +4,7 @@ use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::*;
 
+/// The non exhaustive version of `PartialDebug`
 #[proc_macro_derive(NonExhaustivePartialDebug)]
 pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
@@ -50,6 +51,7 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
+/// The placeholder version of `PartialDebug`
 #[proc_macro_derive(PlaceholderPartialDebug, attributes(debug_placeholder))]
 pub fn derive_placeholder(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);

@@ -1,13 +1,12 @@
+//! Derive Debug for types where not all fields implement Debug
+//!
 //! # Non Exhaustive
 //!
 //! ```
 //! #![feature(debug_non_exhaustive)]
 //! use partialdebug::non_exhaustive::PartialDebug;
 //!
-//! # #[allow(dead_code)]
-//! # struct DNA {
-//! #     sequence: &'static str,
-//! # }
+//! # struct DNA;
 //! #
 //! #[derive(PartialDebug)]
 //! struct Dog {
@@ -21,9 +20,7 @@
 //! #         Dog {
 //! #             legs: 4,
 //! #             eyes: 2,
-//! #             dna: DNA {
-//! #                 sequence: "",
-//! #             },
+//! #             dna: DNA,
 //! #         }
 //! #     }
 //! # }
@@ -36,10 +33,7 @@
 //! ```
 //! use partialdebug::placeholder::PartialDebug;
 //!
-//! # #[allow(dead_code)]
-//! # struct DNA {
-//! #     sequence: &'static str,
-//! # }
+//! # struct DNA;
 //! #
 //! #[derive(PartialDebug)]
 //! struct Dog {
@@ -53,9 +47,7 @@
 //! #         Dog {
 //! #             legs: 4,
 //! #             eyes: 2,
-//! #             dna: DNA {
-//! #                 sequence: "",
-//! #             },
+//! #             dna: DNA,
 //! #         }
 //! #     }
 //! # }
@@ -68,10 +60,7 @@
 //! ```
 //! use partialdebug::placeholder::PartialDebug;
 //!
-//! # #[allow(dead_code)]
-//! # struct DNA {
-//! #     sequence: &'static str,
-//! # }
+//! # struct DNA;
 //! #
 //! #[derive(PartialDebug)]
 //! #[debug_placeholder = "Unknown"]
@@ -86,9 +75,7 @@
 //! #         Dog {
 //! #             legs: 4,
 //! #             eyes: 2,
-//! #             dna: DNA {
-//! #                 sequence: "",
-//! #             },
+//! #             dna: DNA,
 //! #         }
 //! #     }
 //! # }
@@ -98,10 +85,20 @@
 
 #![allow(incomplete_features)]
 #![feature(specialization)]
+#![warn(missing_docs, trivial_casts, rust_2018_idioms)]
 
 use core::fmt::{Debug, Formatter, Result};
 
+/// Specialized trait used to distinguish between types that implement Debug and one's that don't^.
+/// ```
+/// # use partialdebug::AsDebug;
+/// # struct DNA;
+/// # let dna = DNA;
+/// assert!(42.as_debug().is_some());
+/// assert!(dna.as_debug().is_none());
+/// ```
 pub trait AsDebug {
+    /// Try to get a reference to `self` as `dyn Debug`
     fn as_debug(&self) -> Option<&dyn Debug>;
 }
 
@@ -117,6 +114,11 @@ impl<T: Debug> AsDebug for T {
     }
 }
 
+/// Placeholder struct for types that do not implement Debug
+/// ```
+/// # use partialdebug::Placeholder;
+/// assert_eq!(format!("{:?}", Placeholder("Foo")), "Foo")
+/// ```
 pub struct Placeholder(pub &'static str);
 
 impl Debug for Placeholder {
@@ -125,10 +127,12 @@ impl Debug for Placeholder {
     }
 }
 
+/// The non exhaustive version of `PartialDebug`
 pub mod non_exhaustive {
     pub use partialdebug_derive::NonExhaustivePartialDebug as PartialDebug;
 }
 
+/// The placeholder version of `PartialDebug`
 pub mod placeholder {
     pub use partialdebug_derive::PlaceholderPartialDebug as PartialDebug;
 }
