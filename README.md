@@ -4,14 +4,8 @@
 
 ```rust
 #![feature(debug_non_exhaustive)]
-
 use partialdebug::non_exhaustive::PartialDebug;
 
-#[allow(dead_code)]
-struct DNA {
-    sequence: &'static str,
-}
-
 #[derive(PartialDebug)]
 struct Dog {
     legs: usize,
@@ -19,25 +13,13 @@ struct Dog {
     dna: DNA,
 }
 
-let dog = Dog {
-    legs: 4,
-    eyes: 2,
-    dna: DNA {
-        sequence: "GACCCCGATTTGA",
-    },
-};
-assert_eq!(format!("{:?}", dog), "Dog { legs: 4, eyes: 2, .. }");
+assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
 ```
 
-## Type Info
+## Placeholder with Type Info
 
 ```rust
-use partialdebug::type_info::PartialDebug;
-
-#[allow(dead_code)]
-struct DNA {
-    sequence: &'static str,
-}
+use partialdebug::placeholder::PartialDebug;
 
 #[derive(PartialDebug)]
 struct Dog {
@@ -46,14 +28,23 @@ struct Dog {
     dna: DNA,
 }
 
-let dog = Dog {
-    legs: 4,
-    eyes: 2,
-    dna: DNA {
-        sequence: "GACCCCGATTTGA",
-    },
-};
-assert_eq!(format!("{:?}", dog), "Dog { legs: 4, eyes: 2, dna: DNA }");
+assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: DNA }");
+```
+
+## Placeholder with Custom Text
+
+```rust
+use partialdebug::placeholder::PartialDebug;
+
+#[derive(PartialDebug)]
+#[debug_placeholder = "Unknown"]
+struct Dog {
+    legs: usize,
+    eyes: usize,
+    dna: DNA,
+}
+
+assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: Unknown }");
 ```
 
 #### License

@@ -1,10 +1,3 @@
-//! ```
-//! # #[allow(dead_code)]
-//! struct DNA {
-//!     sequence: &'static str,
-//! }
-//! ```
-//!
 //! # Non Exhaustive
 //!
 //! ```
