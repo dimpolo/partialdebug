@@ -1,15 +1,21 @@
+//! ```
+//! # #[allow(dead_code)]
+//! struct DNA {
+//!     sequence: &'static str,
+//! }
+//! ```
+//!
 //! # Non Exhaustive
 //!
 //! ```
 //! #![feature(debug_non_exhaustive)]
-//!
 //! use partialdebug::non_exhaustive::PartialDebug;
 //!
-//! #[allow(dead_code)]
-//! struct DNA {
-//!     sequence: &'static str,
-//! }
-//!
+//! # #[allow(dead_code)]
+//! # struct DNA {
+//! #     sequence: &'static str,
+//! # }
+//! #
 //! #[derive(PartialDebug)]
 //! struct Dog {
 //!     legs: usize,
@@ -17,26 +23,31 @@
 //!     dna: DNA,
 //! }
 //!
-//! let dog = Dog {
-//!     legs: 4,
-//!     eyes: 2,
-//!     dna: DNA {
-//!         sequence: "GACCCCGATTTGA",
-//!     },
-//! };
-//! assert_eq!(format!("{:?}", dog), "Dog { legs: 4, eyes: 2, .. }");
+//! # impl Dog {
+//! #     fn new() -> Dog {
+//! #         Dog {
+//! #             legs: 4,
+//! #             eyes: 2,
+//! #             dna: DNA {
+//! #                 sequence: "",
+//! #             },
+//! #         }
+//! #     }
+//! # }
+//! #
+//! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
 //! ```
 //!
-//! # Type Info
+//! # Placeholder with Type Info
 //!
 //! ```
-//! use partialdebug::type_info::PartialDebug;
+//! use partialdebug::placeholder::PartialDebug;
 //!
-//! #[allow(dead_code)]
-//! struct DNA {
-//!     sequence: &'static str,
-//! }
-//!
+//! # #[allow(dead_code)]
+//! # struct DNA {
+//! #     sequence: &'static str,
+//! # }
+//! #
 //! #[derive(PartialDebug)]
 //! struct Dog {
 //!     legs: usize,
@@ -44,14 +55,52 @@
 //!     dna: DNA,
 //! }
 //!
-//! let dog = Dog {
-//!     legs: 4,
-//!     eyes: 2,
-//!     dna: DNA {
-//!         sequence: "GACCCCGATTTGA",
-//!     },
-//! };
-//! assert_eq!(format!("{:?}", dog), "Dog { legs: 4, eyes: 2, dna: DNA }");
+//! # impl Dog {
+//! #     fn new() -> Dog {
+//! #         Dog {
+//! #             legs: 4,
+//! #             eyes: 2,
+//! #             dna: DNA {
+//! #                 sequence: "",
+//! #             },
+//! #         }
+//! #     }
+//! # }
+//! #
+//! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: DNA }");
+//! ```
+//!
+//! # Placeholder with Custom Text
+//!
+//! ```
+//! use partialdebug::placeholder::PartialDebug;
+//!
+//! # #[allow(dead_code)]
+//! # struct DNA {
+//! #     sequence: &'static str,
+//! # }
+//! #
+//! #[derive(PartialDebug)]
+//! #[placeholder = "Unknown"]
+//! struct Dog {
+//!     legs: usize,
+//!     eyes: usize,
+//!     dna: DNA,
+//! }
+//!
+//! # impl Dog {
+//! #     fn new() -> Dog {
+//! #         Dog {
+//! #             legs: 4,
+//! #             eyes: 2,
+//! #             dna: DNA {
+//! #                 sequence: "",
+//! #             },
+//! #         }
+//! #     }
+//! # }
+//! #
+//! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: Unknown }");
 //! ```
 
 #![allow(incomplete_features)]
@@ -87,6 +136,6 @@ pub mod non_exhaustive {
     pub use partialdebug_derive::NonExhaustivePartialDebug as PartialDebug;
 }
 
-pub mod type_info {
-    pub use partialdebug_derive::TypeInfoPartialDebug as PartialDebug;
+pub mod placeholder {
+    pub use partialdebug_derive::PlaceholderPartialDebug as PartialDebug;
 }
