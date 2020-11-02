@@ -73,8 +73,7 @@ pub fn derive_placeholder(input: TokenStream) -> TokenStream {
 
     let as_debug_all_fields = fields.iter().map(|field| {
         let name = &field.ident;
-        let mut type_name = field.ty.to_token_stream().to_string();
-        type_name.retain(|c| !c.is_whitespace()); // remove whitespace
+        let type_name = get_type_name(&field.ty);
 
         // type name or given placeholder string
         let placeholder_string = placeholder.as_ref().unwrap_or(&type_name);
@@ -135,4 +134,73 @@ fn get_placeholder(input: &ItemStruct) -> Result<Option<String>> {
             parse2::<Placeholder>(attribute.tokens.clone()).map(|placeholder| placeholder.0)
         })
         .transpose()
+}
+
+/// returns the type as a string with unnecessary whitespace removed
+fn get_type_name(ty: &Type) -> String {
+    let mut type_name = String::new();
+    let chars: Vec<char> = ty.to_token_stream().to_string().trim().chars().collect();
+
+    for (i, char) in chars.iter().enumerate() {
+        if char.is_whitespace() {
+            // remove whitespace surrounding punctuation
+            // exceptions are:
+            //      - whitespace surrounding `->`
+            //      - whitespace following `,` or `;`
+            let (before, after) = (chars[i - 1], chars[i + 1]); // always valid because string was trimmed before
+            let before_wide = chars.get(i.saturating_sub(2)..i);
+            let after_wide = chars.get(i + 1..=i + 2);
+
+            if (before.is_ascii_punctuation() || after.is_ascii_punctuation())
+                && !matches!(before, ';' | ',')
+                && !matches!(before_wide, Some(['-', '>']))
+                && !matches!(after_wide, Some(['-', '>']))
+            {
+                continue;
+            }
+        }
+
+        type_name.push(*char);
+    }
+
+    type_name
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_type_name_formatting(type_str: &str) {
+        let ty: Type = parse_str(type_str).unwrap();
+        assert_eq!(get_type_name(&ty), type_str)
+    }
+
+    #[test]
+    fn test_no_spaces() {
+        test_type_name_formatting("u8");
+        test_type_name_formatting("Option<u8>");
+        test_type_name_formatting("[u8]");
+        test_type_name_formatting("()");
+        test_type_name_formatting("std::fmt::Formatter<'_>");
+    }
+    #[test]
+    fn test_array() {
+        test_type_name_formatting("[u8; 4]");
+    }
+    #[test]
+    fn test_lifetime() {
+        test_type_name_formatting("&'a u8");
+    }
+    #[test]
+    fn test_function() {
+        test_type_name_formatting("fn(u8) -> u8");
+    }
+    #[test]
+    fn test_trait_object() {
+        test_type_name_formatting("Box<dyn Send>");
+    }
+    #[test]
+    fn test_tuple() {
+        test_type_name_formatting("(Option<u8>, u8)");
+    }
 }
