@@ -22,10 +22,10 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
         quote! {
             match ::partialdebug::AsDebug::as_debug(&self. #name) {
                 None => {
-                    exhaustive = false;
+                    __exhaustive = false;
                 }
                 Some(field) => {
-                    s.field(stringify!(#name), field);
+                    __s.field(stringify!(#name), field);
                 }
             }
         }
@@ -34,15 +34,15 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl #impl_generics ::core::fmt::Debug for #name #ty_generics #where_clause{
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                let mut s = f.debug_struct(stringify!(#name));
-                let mut exhaustive = false;
+                let mut __s = f.debug_struct(stringify!(#name));
+                let mut __exhaustive = false;
 
                 #(#as_debug_all_fields)*
 
                 if exhaustive {
-                    s.finish()
+                    __s.finish()
                 } else {
-                    s.finish_non_exhaustive()
+                    __s.finish_non_exhaustive()
                 }
             }
         }
@@ -84,7 +84,7 @@ pub fn derive_placeholder(input: TokenStream) -> TokenStream {
                 stringify!(#name),
                 match ::partialdebug::AsDebug::as_debug(&self.#name){
                     None => &::partialdebug::Placeholder(#placeholder_string),
-                    Some(field) => field,
+                    Some(__field) => __field,
                 },
             )
         }
