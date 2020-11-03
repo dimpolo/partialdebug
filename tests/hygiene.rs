@@ -1,4 +1,5 @@
 #![no_implicit_prelude]
+#![no_std]
 #![feature(debug_non_exhaustive)]
 use ::partialdebug;
 

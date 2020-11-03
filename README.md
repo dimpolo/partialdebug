@@ -1,8 +1,13 @@
 # partialdebug
 
-Derive Debug for types where not all fields implement Debug
+Derive Debug for types where not all fields implement Debug.
+
+This relies on specialization and thus requires nightly.
 
 #### Non Exhaustive
+
+Requires the `debug_non_exhaustive` feature.
+Only available for structs with named fields.
 
 ```rust
 #![feature(debug_non_exhaustive)]
