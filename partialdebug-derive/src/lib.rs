@@ -1,7 +1,9 @@
 use proc_macro::TokenStream;
 
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
+use syn::spanned::Spanned;
 use syn::*;
 
 /// The non exhaustive version of `PartialDebug`
@@ -54,7 +56,7 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
 /// The placeholder version of `PartialDebug`
 #[proc_macro_derive(PlaceholderPartialDebug, attributes(debug_placeholder))]
 pub fn derive_placeholder(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as ItemStruct);
+    let input = parse_macro_input!(input as DeriveInput);
     let placeholder = match get_placeholder(&input) {
         Ok(placeholder) => placeholder,
         Err(err) => {
@@ -62,62 +64,150 @@ pub fn derive_placeholder(input: TokenStream) -> TokenStream {
         }
     };
 
-    let name = &input.ident;
+    let name = input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let no_fields = punctuated::Punctuated::new();
-
-    let (fields, constructor) = match &input.fields {
-        Fields::Named(FieldsNamed { named, .. }) => (named, quote! {debug_struct}),
-        Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => (unnamed, quote! {debug_tuple}),
-        Fields::Unit => (&no_fields, quote! {debug_tuple}),
+    let implementation = match input.data {
+        Data::Struct(DataStruct { fields, .. }) => gen_variant_debug(
+            &fields,
+            &name,
+            struct_field_conversions(&fields, &placeholder),
+        ),
+        Data::Enum(data_enum) => gen_enum_debug(&data_enum, &name, &placeholder),
+        Data::Union(_) => unimplemented!(),
     };
-
-    let as_debug_all_fields = fields.iter().enumerate().map(|(idx, field)| {
-        let type_name = get_type_name(&field.ty);
-
-        // type name or given placeholder string
-        let placeholder_string = placeholder.as_ref().unwrap_or(&type_name);
-
-        match &field.ident {
-            None => {
-                let idx = Index::from(idx);
-                quote! {
-                    .field(
-                        match ::partialdebug::AsDebug::as_debug(&self.#idx){
-                            None => &::partialdebug::Placeholder(#placeholder_string),
-                            Some(__field) => __field,
-                        },
-                    )
-                }
-            }
-            Some(name) => {
-                quote! {
-                    .field(
-                        stringify!(#name),
-                        match ::partialdebug::AsDebug::as_debug(&self.#name){
-                            None => &::partialdebug::Placeholder(#placeholder_string),
-                            Some(__field) => __field,
-                        },
-                    )
-                }
-            }
-        }
-    });
 
     let expanded = quote! {
         impl #impl_generics ::core::fmt::Debug for #name #ty_generics #where_clause{
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                f.#constructor(stringify!(#name))
-
-                #(#as_debug_all_fields)*
-
-                .finish()
+                #implementation
             }
         }
     };
 
     TokenStream::from(expanded)
+}
+
+fn gen_variant_debug(
+    fields: &Fields,
+    variant_name: &Ident,
+    field_conversions: impl Iterator<Item = TokenStream2>,
+) -> TokenStream2 {
+    let constructor = match fields {
+        Fields::Named(_) => quote! {debug_struct},
+        Fields::Unnamed(_) | Fields::Unit => quote! {debug_tuple},
+    };
+
+    quote! {
+        f.#constructor(stringify!(#variant_name))
+        #(#field_conversions)*
+        .finish()
+    }
+}
+
+fn gen_enum_debug(
+    data_enum: &DataEnum,
+    enum_name: &Ident,
+    placeholder: &Option<String>,
+) -> TokenStream2 {
+    let all_variants = data_enum.variants.iter().map(|variant| {
+        let variant_name = &variant.ident;
+        let match_content = gen_variant_debug(
+            &variant.fields,
+            variant_name,
+            enum_field_conversions(&variant.fields, placeholder),
+        );
+        let match_pattern = gen_match_pattern(enum_name, variant);
+        quote! {
+            #match_pattern => {
+                #match_content
+            }
+        }
+    });
+
+    quote! {
+        match self {
+            #(#all_variants)*
+        }
+    }
+}
+
+fn struct_field_conversions<'a>(
+    fields: &'a Fields,
+    placeholder: &'a Option<String>,
+) -> impl Iterator<Item = TokenStream2> + 'a {
+    fields.iter().enumerate().map(move |(idx, field)| {
+        let (field_handle, name_arg) = match &field.ident {
+            None => {
+                let index = Index::from(idx);
+                (quote! {self.#index}, None)
+            }
+            Some(name) => (quote! {self.#name}, Some(quote! {stringify!(#name),})),
+        };
+        gen_field_as_debug(field, placeholder, field_handle, name_arg)
+    })
+}
+
+fn enum_field_conversions<'a>(
+    fields: &'a Fields,
+    placeholder: &'a Option<String>,
+) -> impl Iterator<Item = TokenStream2> + 'a {
+    fields.iter().enumerate().map(move |(idx, field)| {
+        let (field_handle, name_arg) = match &field.ident {
+            None => {
+                let ident = Ident::new(&format!("__{}", idx), field.span());
+                (quote! {#ident}, None)
+            }
+            Some(name) => (quote! {#name}, Some(quote! {stringify!(#name),})),
+        };
+        gen_field_as_debug(field, placeholder, field_handle, name_arg)
+    })
+}
+
+fn gen_field_as_debug(
+    field: &Field,
+    placeholder: &Option<String>,
+    field_handle: TokenStream2,
+    name_arg: Option<TokenStream2>,
+) -> TokenStream2 {
+    let type_name = get_type_name(&field.ty);
+
+    // type name or given placeholder string
+    let placeholder_string = placeholder.as_ref().unwrap_or(&type_name);
+
+    quote! {
+        .field(
+            #name_arg
+            match ::partialdebug::AsDebug::as_debug(&#field_handle){
+                None => &::partialdebug::Placeholder(#placeholder_string),
+                Some(__field) => __field,
+            },
+        )
+    }
+}
+
+fn gen_match_pattern(enum_name: &Ident, variant: &Variant) -> TokenStream2 {
+    let variant_name = &variant.ident;
+    let destructuring_pattern = match &variant.fields {
+        Fields::Named(FieldsNamed { named, .. }) => {
+            let patterns = named.iter().map(|field| &field.ident);
+            quote! {
+                {#(#patterns),*}
+            }
+        }
+        Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
+            let patterns = unnamed
+                .iter()
+                .enumerate()
+                .map(|(idx, field)| Ident::new(&format!("__{}", idx), field.span()));
+            quote! {
+                (#(#patterns),*)
+            }
+        }
+        Fields::Unit => TokenStream2::new(),
+    };
+
+    quote! {#enum_name::#variant_name #destructuring_pattern}
 }
 
 struct Placeholder(String);
@@ -130,7 +220,7 @@ impl Parse for Placeholder {
 }
 
 /// Tries to parse a placeholder string if there is one
-fn get_placeholder(input: &ItemStruct) -> Result<Option<String>> {
+fn get_placeholder(input: &DeriveInput) -> Result<Option<String>> {
     let placeholders: Vec<_> = input
         .attrs
         .iter()
