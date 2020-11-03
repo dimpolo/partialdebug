@@ -1,12 +1,15 @@
 use proc_macro::TokenStream;
 
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::*;
 
 /// The non exhaustive version of `PartialDebug`
+///
+/// Requires the `debug_non_exhaustive` feature.
+/// Only available for structs with named fields.
 #[proc_macro_derive(NonExhaustivePartialDebug)]
 pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
@@ -15,8 +18,12 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
 
     let fields = match input.fields {
         Fields::Named(FieldsNamed { named, .. }) => named,
-        Fields::Unnamed(_) => unimplemented!(),
-        Fields::Unit => unimplemented!(),
+        Fields::Unit => punctuated::Punctuated::new(),
+        Fields::Unnamed(_) => {
+            return Error::new(Span::call_site(), "non_exhaustive currently is only available on structs with named fields. See https://github.com/rust-lang/rust/issues/67364")
+                .to_compile_error()
+                .into();
+        }
     };
 
     let as_debug_all_fields = fields.iter().map(|field| {
@@ -74,7 +81,14 @@ pub fn derive_placeholder(input: TokenStream) -> TokenStream {
             struct_field_conversions(&fields, &placeholder),
         ),
         Data::Enum(data_enum) => gen_enum_debug(&data_enum, &name, &placeholder),
-        Data::Union(_) => unimplemented!(),
+        Data::Union(_) => {
+            return Error::new(
+                Span::call_site(),
+                "PartialDebug can not be derived for unions",
+            )
+            .to_compile_error()
+            .into();
+        }
     };
 
     let expanded = quote! {
