@@ -39,7 +39,7 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
 
                 #(#as_debug_all_fields)*
 
-                if exhaustive {
+                if __exhaustive {
                     __s.finish()
                 } else {
                     __s.finish_non_exhaustive()
