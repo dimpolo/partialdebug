@@ -65,34 +65,50 @@ pub fn derive_placeholder(input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let fields = match &input.fields {
-        Fields::Named(FieldsNamed { named, .. }) => named,
-        Fields::Unnamed(_) => unimplemented!(),
-        Fields::Unit => unimplemented!(),
+    let no_fields = punctuated::Punctuated::new();
+
+    let (fields, constructor) = match &input.fields {
+        Fields::Named(FieldsNamed { named, .. }) => (named, quote! {debug_struct}),
+        Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => (unnamed, quote! {debug_tuple}),
+        Fields::Unit => (&no_fields, quote! {debug_tuple}),
     };
 
-    let as_debug_all_fields = fields.iter().map(|field| {
-        let name = &field.ident;
+    let as_debug_all_fields = fields.iter().enumerate().map(|(idx, field)| {
         let type_name = get_type_name(&field.ty);
 
         // type name or given placeholder string
         let placeholder_string = placeholder.as_ref().unwrap_or(&type_name);
 
-        quote! {
-            .field(
-                stringify!(#name),
-                match ::partialdebug::AsDebug::as_debug(&self.#name){
-                    None => &::partialdebug::Placeholder(#placeholder_string),
-                    Some(__field) => __field,
-                },
-            )
+        match &field.ident {
+            None => {
+                let idx = Index::from(idx);
+                quote! {
+                    .field(
+                        match ::partialdebug::AsDebug::as_debug(&self.#idx){
+                            None => &::partialdebug::Placeholder(#placeholder_string),
+                            Some(__field) => __field,
+                        },
+                    )
+                }
+            }
+            Some(name) => {
+                quote! {
+                    .field(
+                        stringify!(#name),
+                        match ::partialdebug::AsDebug::as_debug(&self.#name){
+                            None => &::partialdebug::Placeholder(#placeholder_string),
+                            Some(__field) => __field,
+                        },
+                    )
+                }
+            }
         }
     });
 
     let expanded = quote! {
         impl #impl_generics ::core::fmt::Debug for #name #ty_generics #where_clause{
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                f.debug_struct(stringify!(#name))
+                f.#constructor(stringify!(#name))
 
                 #(#as_debug_all_fields)*
 
