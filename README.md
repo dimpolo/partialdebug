@@ -7,6 +7,8 @@ Derive Debug for types where not all fields implement Debug.
 
 This relies on specialization and thus requires nightly.
 
+This crate works with 'no_std'.
+
 #### Non Exhaustive
 
 Requires the `debug_non_exhaustive` feature.

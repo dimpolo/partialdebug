@@ -2,6 +2,8 @@
 //!
 //! This relies on specialization and thus requires nightly.
 //!
+//! This crate works with 'no_std'.
+//!
 //! ### Non Exhaustive
 //!
 //! Requires the `debug_non_exhaustive` feature.
@@ -88,6 +90,7 @@
 //! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: Unknown }");
 //! ```
 
+#![no_std]
 #![allow(incomplete_features)]
 #![feature(specialization)]
 #![warn(missing_docs, trivial_casts, rust_2018_idioms)]
