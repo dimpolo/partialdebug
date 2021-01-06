@@ -8,8 +8,9 @@ use syn::*;
 
 /// The non exhaustive version of `PartialDebug`
 ///
-/// Requires the `debug_non_exhaustive` feature.
+/// Requires the `unstable` feature.
 /// Only available for structs with named fields.
+#[cfg(feature = "unstable")]
 #[proc_macro_derive(NonExhaustivePartialDebug)]
 pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
@@ -29,7 +30,7 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     let as_debug_all_fields = fields.iter().map(|field| {
         let name = &field.ident;
         quote! {
-            match ::partialdebug::AsDebug::as_debug(&self. #name) {
+            match ::partialdebug::specialization::AsDebug::as_debug(&self. #name) {
                 None => {
                     __exhaustive = false;
                 }
@@ -178,6 +179,7 @@ fn enum_field_conversions<'a>(
     })
 }
 
+#[cfg(feature = "unstable")]
 fn gen_field_as_debug(
     field: &Field,
     placeholder: &Option<String>,
@@ -192,7 +194,31 @@ fn gen_field_as_debug(
     quote! {
         .field(
             #name_arg
-            match ::partialdebug::AsDebug::as_debug(&#field_handle){
+            match ::partialdebug::specialization::AsDebug::as_debug(&#field_handle){
+                None => &::partialdebug::Placeholder(#placeholder_string),
+                Some(__field) => __field,
+            },
+        )
+    }
+}
+
+#[cfg(not(feature = "unstable"))]
+fn gen_field_as_debug(
+    field: &Field,
+    placeholder: &Option<String>,
+    field_handle: TokenStream2,
+    name_arg: Option<TokenStream2>,
+) -> TokenStream2 {
+    let type_name = get_type_name(&field.ty);
+    let field_type = &field.ty;
+
+    // type name or given placeholder string
+    let placeholder_string = placeholder.as_ref().unwrap_or(&type_name);
+
+    quote! {
+        .field(
+            #name_arg
+            match ::partialdebug::no_specialization::DebugDetector::<#field_type>::as_debug(&#field_handle){
                 None => &::partialdebug::Placeholder(#placeholder_string),
                 Some(__field) => __field,
             },
