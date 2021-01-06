@@ -5,28 +5,8 @@
 
 Derive Debug for types where not all fields implement Debug.
 
-This relies on specialization and thus requires nightly.
-
-This crate works with 'no_std'.
-
-#### Non Exhaustive
-
-Requires the `debug_non_exhaustive` feature.
-Only available for structs with named fields.
-
-```rust
-#![feature(debug_non_exhaustive)]
-use partialdebug::non_exhaustive::PartialDebug;
-
-#[derive(PartialDebug)]
-struct Dog {
-    legs: usize,
-    eyes: usize,
-    dna: DNA,
-}
-
-assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
-```
+This crate works on stable and with `no_std`.
+On nightly the `unstable` feature can be used for specialization based trait detection and/or `..` formatting.
 
 #### Placeholder with Type Info
 
@@ -59,6 +39,44 @@ struct Dog {
 assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: Unknown }");
 ```
 
+#### Non Exhaustive
+
+Only available on nightly after setting the `unstable` feature.
+
+Requires the `debug_non_exhaustive` feature to be enabled in user code.
+
+Only available for structs with named fields.
+
+```rust
+#![feature(debug_non_exhaustive)]
+use partialdebug::non_exhaustive::PartialDebug;
+
+#[derive(PartialDebug)]
+struct Dog {
+    legs: usize,
+    eyes: usize,
+    dna: DNA,
+}
+
+assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
+```
+
+#### Caveats
+
+Trait detection for generic types requires specialization.
+To enable specialization based trait detection use a nightly compiler and enable the `unstable` feature.
+
+```rust
+use partialdebug::placeholder::PartialDebug;
+
+#[derive(PartialDebug)]
+struct Container<T>(T);
+
+#[cfg(feature = "unstable")]
+assert_eq!(format!("{:?}", Container(42)), "Container(42)");
+#[cfg(not(feature = "unstable"))]
+assert_eq!(format!("{:?}", Container(42)), "Container(T)");
+```
 #### License
 <sup>
 Licensed under either of <a href="LICENSE-APACHE">Apache License, Version

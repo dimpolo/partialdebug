@@ -1,11 +1,15 @@
 [package]
 name = "partialdebug"
 description = "Derive Debug partially"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Dimitri Polonski"]
 edition = "2018"
 repository = "https://github.com/dimpolo/partialdebug/"
 license = "MIT OR Apache-2.0"
 
+
+[features]
+unstable = ["partialdebug-derive/unstable"]
+
 [dependencies]
-partialdebug-derive = "0.1.1"
+partialdebug-derive = "0.2.0"
