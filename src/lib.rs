@@ -1,7 +1,7 @@
 //! Derive Debug for types where not all fields implement Debug.
 //!
 //! This crate works on stable and with `no_std`.
-//! On nightly the `unstable` feature can be used for specialization based trait detection and/or `..` formatting.
+//! On nightly the `unstable` feature can be used for specialization-based trait detection and/or `..` formatting.
 //!
 //! ### Placeholder with Type Info
 //!
@@ -58,11 +58,7 @@
 //! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, dna: Unknown }");
 //! ```
 //!
-//! ### Non Exhaustive
-//!
-//! Only available on nightly after setting the `unstable` feature.
-//!
-//! Requires the `debug_non_exhaustive` feature to be enabled in user code.
+//! ### Non-Exhaustive
 //!
 //! Only available for structs with named fields.
 

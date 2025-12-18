@@ -6,7 +6,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::*;
 
-/// The non exhaustive version of `PartialDebug`
+/// The non-exhaustive version of `PartialDebug`
 ///
 /// Requires the `unstable` feature.
 /// Only available for structs with named fields.

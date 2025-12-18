@@ -9,7 +9,7 @@
 //!
 //! Using `DebugDetector::<SomeType>::as_debug(&something)` then acts as a trait detector.
 //!
-//! Note that if `SomeType` is generic the detector won't work.
+//! Note that if `SomeType` is generic, the detector won't work.
 
 use core::fmt::Debug;
 
