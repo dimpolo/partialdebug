@@ -8,9 +8,7 @@ use syn::*;
 
 /// The non-exhaustive version of `PartialDebug`
 ///
-/// Requires the `unstable` feature.
 /// Only available for structs with named fields.
-#[cfg(feature = "unstable")]
 #[proc_macro_derive(NonExhaustivePartialDebug)]
 pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemStruct);
@@ -27,19 +25,7 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
         }
     };
 
-    let as_debug_all_fields = fields.iter().map(|field| {
-        let name = &field.ident;
-        quote! {
-            match ::partialdebug::specialization::AsDebug::as_debug(&self. #name) {
-                ::core::option::Option::None => {
-                    __exhaustive = false;
-                }
-                ::core::option::Option::Some(field) => {
-                    __s.field(stringify!(#name), field);
-                }
-            }
-        }
-    });
+    let as_debug_all_fields = fields.iter().map(gen_field_as_debug_non_exhaustive);
 
     let expanded = quote! {
         impl #impl_generics ::core::fmt::Debug for #name #ty_generics #where_clause{
@@ -59,6 +45,39 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+#[cfg(feature = "unstable")]
+fn gen_field_as_debug_non_exhaustive(field: &Field) -> TokenStream2 {
+    let name = &field.ident;
+
+    quote! {
+        match ::partialdebug::specialization::AsDebug::as_debug(&self. #name) {
+            ::core::option::Option::None => {
+                __exhaustive = false;
+            }
+            ::core::option::Option::Some(field) => {
+                __s.field(stringify!(#name), field);
+            }
+        }
+    }
+}
+
+#[cfg(not(feature = "unstable"))]
+fn gen_field_as_debug_non_exhaustive(field: &Field) -> TokenStream2 {
+    let name = &field.ident;
+    let field_type = &field.ty;
+
+    quote! {
+        match ::partialdebug::no_specialization::DebugDetector::<#field_type>::as_debug(&self. #name) {
+            ::core::option::Option::None => {
+                __exhaustive = false;
+            }
+            ::core::option::Option::Some(field) => {
+                __s.field(stringify!(#name), field);
+            }
+        }
+    }
 }
 
 /// The placeholder version of `PartialDebug`
@@ -159,7 +178,7 @@ fn struct_field_conversions<'a>(
             }
             Some(name) => (quote! {self.#name}, Some(quote! {stringify!(#name),})),
         };
-        gen_field_as_debug(field, placeholder, field_handle, name_arg)
+        gen_field_as_debug_placeholder(field, placeholder, field_handle, name_arg)
     })
 }
 
@@ -175,12 +194,12 @@ fn enum_field_conversions<'a>(
             }
             Some(name) => (quote! {#name}, Some(quote! {stringify!(#name),})),
         };
-        gen_field_as_debug(field, placeholder, field_handle, name_arg)
+        gen_field_as_debug_placeholder(field, placeholder, field_handle, name_arg)
     })
 }
 
 #[cfg(feature = "unstable")]
-fn gen_field_as_debug(
+fn gen_field_as_debug_placeholder(
     field: &Field,
     placeholder: &Option<String>,
     field_handle: TokenStream2,
@@ -203,7 +222,7 @@ fn gen_field_as_debug(
 }
 
 #[cfg(not(feature = "unstable"))]
-fn gen_field_as_debug(
+fn gen_field_as_debug_placeholder(
     field: &Field,
     placeholder: &Option<String>,
     field_handle: TokenStream2,

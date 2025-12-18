@@ -1,7 +1,7 @@
 //! Derive Debug for types where not all fields implement Debug.
 //!
 //! This crate works on stable and with `no_std`.
-//! On nightly the `unstable` feature can be used for specialization-based trait detection and/or `..` formatting.
+//! On nightly the `unstable` feature can be used for specialization-based trait detection.
 //!
 //! ### Placeholder with Type Info
 //!
@@ -61,36 +61,30 @@
 //! ### Non-Exhaustive
 //!
 //! Only available for structs with named fields.
-
-#![cfg_attr(
-    feature = "unstable",
-    doc = r##"
-```
-#![feature(debug_non_exhaustive)]
-use partialdebug::non_exhaustive::PartialDebug;
-# struct DNA;
-#
-#[derive(PartialDebug)]
-struct Dog {
-    legs: usize,
-    eyes: usize,
-    dna: DNA,
-}
-# impl Dog {
-#     fn new() -> Dog {
-#         Dog {
-#             legs: 4,
-#             eyes: 2,
-#             dna: DNA,
-#         }
-#     }
-# }
-#
-assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
-```
-"##
-)]
-
+//!
+//! ```
+//! use partialdebug::non_exhaustive::PartialDebug;
+//! # struct DNA;
+//! #
+//! #[derive(PartialDebug)]
+//! struct Dog {
+//!     legs: usize,
+//!     eyes: usize,
+//!     dna: DNA,
+//! }
+//! # impl Dog {
+//! #     fn new() -> Dog {
+//! #         Dog {
+//! #             legs: 4,
+//! #             eyes: 2,
+//! #             dna: DNA,
+//! #         }
+//! #     }
+//! # }
+//! #
+//! assert_eq!(format!("{:?}", Dog::new()), "Dog { legs: 4, eyes: 2, .. }");
+//! ```
+//!
 //! ### Caveats
 //!
 //! Trait detection for generic types requires specialization.
@@ -142,7 +136,8 @@ pub mod placeholder {
 }
 
 /// The non exhaustive version of `PartialDebug`
-#[cfg(feature = "unstable")]
 pub mod non_exhaustive {
+    #[cfg(not(feature = "unstable"))]
+    pub use crate::no_specialization::NotDebug as PartialDebug; // needs to be in scope
     pub use partialdebug_derive::NonExhaustivePartialDebug as PartialDebug;
 }
