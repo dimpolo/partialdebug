@@ -12,4 +12,4 @@ license = "MIT OR Apache-2.0"
 unstable = ["partialdebug-derive/unstable"]
 
 [dependencies]
-partialdebug-derive = "0.2.0"
+partialdebug-derive = { version = "0.2.0", path = "partialdebug-derive" }
