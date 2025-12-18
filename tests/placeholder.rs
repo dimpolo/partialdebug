@@ -20,6 +20,7 @@ mod partial {
     }
 }
 
+#[allow(dead_code)]
 mod normal {
     #[derive(Debug)]
     pub struct UnitStruct;

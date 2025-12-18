@@ -1,17 +1,12 @@
 #![no_implicit_prelude]
 #![no_std]
 #![cfg_attr(feature = "unstable", feature(debug_non_exhaustive))]
+#![allow(dead_code)]
 
 use ::partialdebug;
 
-// These are required for now
-use ::core::option::Option::*;
-
-#[cfg_attr(
-    feature = "unstable",
-    derive(partialdebug::non_exhaustive::PartialDebug)
-)]
 #[cfg(feature = "unstable")]
+#[derive(partialdebug::non_exhaustive::PartialDebug)]
 struct NonExhaustive {
     field: usize,
 }

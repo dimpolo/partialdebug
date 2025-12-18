@@ -31,10 +31,10 @@ pub fn derive_non_exhaustive(input: TokenStream) -> TokenStream {
         let name = &field.ident;
         quote! {
             match ::partialdebug::specialization::AsDebug::as_debug(&self. #name) {
-                None => {
+                ::core::option::Option::None => {
                     __exhaustive = false;
                 }
-                Some(field) => {
+                ::core::option::Option::Some(field) => {
                     __s.field(stringify!(#name), field);
                 }
             }
@@ -195,8 +195,8 @@ fn gen_field_as_debug(
         .field(
             #name_arg
             match ::partialdebug::specialization::AsDebug::as_debug(&#field_handle){
-                None => &::partialdebug::Placeholder(#placeholder_string),
-                Some(__field) => __field,
+                ::core::option::Option::None => &::partialdebug::Placeholder(#placeholder_string),
+                ::core::option::Option::Some(__field) => __field,
             },
         )
     }
@@ -219,8 +219,8 @@ fn gen_field_as_debug(
         .field(
             #name_arg
             match ::partialdebug::no_specialization::DebugDetector::<#field_type>::as_debug(&#field_handle){
-                None => &::partialdebug::Placeholder(#placeholder_string),
-                Some(__field) => __field,
+                ::core::option::Option::None => &::partialdebug::Placeholder(#placeholder_string),
+                ::core::option::Option::Some(__field) => __field,
             },
         )
     }
