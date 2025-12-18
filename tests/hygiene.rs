@@ -4,7 +4,6 @@
 
 use ::partialdebug;
 
-#[cfg(feature = "unstable")]
 #[derive(partialdebug::non_exhaustive::PartialDebug)]
 struct NonExhaustive {
     field: usize,
