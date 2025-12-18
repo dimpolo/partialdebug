@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "unstable", feature(try_as_dyn))]
+
 mod partial {
     use partialdebug::placeholder::PartialDebug;
 

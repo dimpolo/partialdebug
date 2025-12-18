@@ -1,6 +1,7 @@
 #![no_implicit_prelude]
 #![no_std]
 #![allow(dead_code)]
+#![cfg_attr(feature = "unstable", feature(try_as_dyn))]
 
 use ::partialdebug;
 

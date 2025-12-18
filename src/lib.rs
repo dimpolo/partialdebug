@@ -88,7 +88,7 @@
 //! ### Caveats
 //!
 //! Trait detection for generic types requires specialization.
-//! To enable specialization based trait detection use a nightly compiler and enable the `unstable` feature.
+//! To enable specialization based trait detection, use a nightly compiler and enable the `unstable` feature.
 //!
 //! ```
 //! use partialdebug::placeholder::PartialDebug;
@@ -104,8 +104,7 @@
 
 #![no_std]
 #![warn(missing_docs, trivial_casts, rust_2018_idioms)]
-#![cfg_attr(feature = "unstable", allow(incomplete_features))]
-#![cfg_attr(feature = "unstable", feature(specialization))]
+#![cfg_attr(feature = "unstable", feature(try_as_dyn))]
 
 use core::fmt::{Debug, Formatter, Result};
 
@@ -124,9 +123,6 @@ impl Debug for Placeholder {
 
 #[cfg(any(not(feature = "unstable"), doc))]
 pub mod no_specialization;
-/// Trait detection logic using specialization
-#[cfg(feature = "unstable")]
-pub mod specialization;
 
 /// The placeholder version of `PartialDebug`
 pub mod placeholder {

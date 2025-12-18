@@ -52,7 +52,7 @@ fn gen_field_as_debug_non_exhaustive(field: &Field) -> TokenStream2 {
     let name = &field.ident;
 
     quote! {
-        match ::partialdebug::specialization::AsDebug::as_debug(&self. #name) {
+        match ::core::any::try_as_dyn::<_, dyn ::core::fmt::Debug>(&self. #name) {
             ::core::option::Option::None => {
                 __exhaustive = false;
             }
@@ -213,7 +213,7 @@ fn gen_field_as_debug_placeholder(
     quote! {
         .field(
             #name_arg
-            match ::partialdebug::specialization::AsDebug::as_debug(&#field_handle){
+            match ::core::any::try_as_dyn::<_, dyn ::core::fmt::Debug>(&#field_handle){
                 ::core::option::Option::None => &::partialdebug::Placeholder(#placeholder_string),
                 ::core::option::Option::Some(__field) => __field,
             },
